@@ -8,6 +8,7 @@ import './App.css';
  */
 interface IState {
   data: ServerRespond[],
+  showGraph: boolean,
 }
 
 /**
@@ -22,6 +23,7 @@ class App extends Component<{}, IState> {
       // data saves the server responds.
       // We use this state to parse data down to the child element (Graph) as element property
       data: [],
+      showGraph: false,
     };
   }
 
@@ -29,18 +31,27 @@ class App extends Component<{}, IState> {
    * Render Graph react component with state.data parse as property data
    */
   renderGraph() {
-    return (<Graph data={this.state.data}/>)
+    if(this.state.showGraph){       // USes showGraph to determine is the graph should be shown
+      return (<Graph data={this.state.data}/>)
+    }
   }
 
   /**
    * Get new data from server and update the state with the new data
    */
   getDataFromServer() {
-    DataStreamer.getData((serverResponds: ServerRespond[]) => {
-      // Update the state by creating a new array of data that consists of
-      // Previous data in the state and the new data from server
-      this.setState({ data: [...this.state.data, ...serverResponds] });
-    });
+    let x = 0;    // X keeps track of the time spent between getting the values for Intervals
+    const interval = setInterval(() => {
+      DataStreamer.getData((serverResponds: ServerRespond[]) => {
+        this.setState({ data: serverResponds,    // sets the states of data and if the graph should be shown
+                        showGraph: true,
+        });
+      })
+      x++;
+      if (x > 1000){           // clears the interval foe new data
+        clearInterval(interval);
+      }
+    }, 100);
   }
 
   /**
@@ -53,6 +64,7 @@ class App extends Component<{}, IState> {
           Bank & Merge Co Task 2
         </header>
         <div className="App-content">
+
           <button className="btn btn-primary Stream-button"
             // when button is click, our react app tries to request
             // new data from the server.
@@ -62,7 +74,8 @@ class App extends Component<{}, IState> {
             onClick={() => {this.getDataFromServer()}}>
             Start Streaming Data
           </button>
-          <div className="Graph">
+
+          <div className="Graph">  {/*Where the Graph is rendered */}
             {this.renderGraph()}
           </div>
         </div>

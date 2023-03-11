@@ -14,7 +14,7 @@ interface IProps {
  * Perspective library adds load to HTMLElement prototype.
  * This interface acts as a wrapper for Typescript compiler.
  */
-interface PerspectiveViewerElement {
+interface PerspectiveViewerElement extends HTMLElement {   // this enables PersepectiveViewerElement to behanve like an HTMLElement
   load: (table: Table) => void,
 }
 
@@ -32,7 +32,18 @@ class Graph extends Component<IProps, {}> {
 
   componentDidMount() {
     // Get element to attach the table from the DOM.
-    const elem: PerspectiveViewerElement = document.getElementsByTagName('perspective-viewer')[0] as unknown as PerspectiveViewerElement;
+    const elem = document.getElementsByTagName('perspective-viewer')[0] as unknown as PerspectiveViewerElement;
+
+    elem.setAttribute('view', 'y_lines');     // View determines the kind of graph we want to visualize the data 
+    elem.setAttribute('column-pivots', '["stock"]');      // column-pivots allows us to distringuish one stock from the other using ["stock"] as the value
+    elem.setAttribute('row-pivots', '["timestamp"]');     // row-pivots takes care of the x-axis by maping each datapoint based on the time stamp
+    elem.setAttribute('columns', '["top_ask_price"]');    // columns allows to pick what aspect to plot for the y-axis
+    elem.setAttribute('aggregates',`      
+    {"stock":"distinct count",
+    "top_ask_price":"avg",
+    "top_bid_price":"avg",
+    "timestamp":"distinct count"}
+    `);     // aggregates handels the duplicated data and consolidates it into a single data point by averaging out the values that are similar
 
     const schema = {
       stock: 'string',
